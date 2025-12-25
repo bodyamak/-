@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Legend</title>
+<style>
+  body {
+    margin: 0;
+    background: linear-gradient(to bottom, #70c5ce, #a0e0ff);
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+// اللاعب
+let player = {
+  x: 80,
+  y: canvas.height / 2,
+  w: 50,
+  h: 50,
+  gravity: 0.6,
+  lift: -10,
+  velocity: 0
+};
+
+// الحواجز
+let pipes = [];
+let frame = 0;
+let score = 0;
+let gameOver = false;
+let gameStarted = false;
+let pipeSpeed = 4;
+
+// صورة الطائر مؤقتة
+const playerImg = new Image();
+playerImg.src = "https://i.imgur.com/QZ6FQ1g.png";
+
+// التحكم باللمس
+document.addEventListener("touchstart", () => {
+  if (!gameStarted) gameStarted = true;
+  if (!gameOver) player.velocity = player.lift;
+});
+
+// إضافة حاجز جديد
+function addPipe() {
+  let gap = 200;
+  let top = Math.random() * (canvas.height - gap - 100) + 50;
+  pipes.push({
+    x: canvas.width,
+    top: top,
+    bottom: top + gap,
+    width: 70,
+    passed: false
+  });
+}
+
+// تحديث اللعبة
+function update() {
+  if (gameOver) return;
+  if (!gameStarted) return;
+
+  frame++;
+  
+  // زيادة سرعة الحواجز تدريجيًا
+  if (frame % 300 === 0) pipeSpeed += 0.5;
+
+  if (frame % 90 === 0) addPipe();
+
+  player.velocity += player.gravity;
+  player.y += player.velocity;
+
+  pipes.forEach(pipe => {
+    pipe.x -= pipeSpeed;
+
+    // زيادة النقاط عند المرور
+    if (!pipe.passed && player.x > pipe.x + pipe.width) {
+      score++;
+      pipe.passed = true;
+    }
+
+    // تصادم
+    if (
+      player.x < pipe.x + pipe.width &&
+      player.x + player.w > pipe.x &&
+      (player.y < pipe.top || player.y + player.h > pipe.bottom)
+    ) {
+      gameOver = true;
+      setTimeout(() => {
+        alert("Game Over 💀 | Score: " + score);
+        location.reload();
+      }, 50);
+    }
+  });
+
+  pipes = pipes.filter(p => p.x + p.width > 0);
+
+  // سقوط الطائر خارج الشاشة
+  if (player.y + player.h > canvas.height || player.y < 0) {
+    gameOver = true;
+    setTimeout(() => {
+      alert("Game Over 💀 | Score: " + score);
+      location.reload();
+    }, 50);
+  }
+}
+
+// الرسم
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // رسم الطائر
+  ctx.drawImage(playerImg, player.x, player.y, player.w, player.h);
+
+  // رسم الحواجز
+  ctx.fillStyle = "#2ecc71";
+  pipes.forEach(pipe => {
+    ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+    ctx.fillRect(pipe.x, pipe.bottom, pipe.width, canvas.height);
+  });
+
+  // عرض النقاط
+  ctx.fillStyle = "#fff";
+  ctx.font = "30px Arial";
+  ctx.fillText("Score: " + score, 20, 40);
+
+  // رسالة البداية
+  if (!gameStarted) {
+    ctx.fillStyle = "#fff";
+    ctx.font = "25px Arial";
+    ctx.fillText("اضغط على الشاشة للبدء", canvas.width / 2 - 120, canvas.height / 2 - 50);
+  }
+}
+
+// لوب اللعبة
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+
+</body>
+</html>
