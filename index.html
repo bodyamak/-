@@ -13,23 +13,26 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        body {
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: fixed;
+            touch-action: none;
             background: #0b1522;
+        }
+
+        body {
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 100dvh;
             font-family: 'Arial', 'Segoe UI', sans-serif;
-            touch-action: none;  /* يمنع السحب والتمرير أثناء اللعب */
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
         }
 
         .game-container {
             position: relative;
-            width: 100vw;
-            height: 100dvh;
+            width: 100%;
+            height: 100%; /* سيتم ضبطه ديناميكيًا عبر JS */
             display: flex;
             flex-direction: column;
             background: #0f1a2b;
@@ -50,6 +53,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-shrink: 0;
         }
 
         .score-label {
@@ -91,19 +95,27 @@
             background: #1e402a;
         }
 
-        /* Canvas ملء الشاشة */
-        canvas {
-            display: block;
+        /* Canvas wrapper لضمان الملء */
+        .canvas-wrapper {
             flex: 1;
             width: 100%;
-            height: calc(100dvh - 90px); /* ناقص شريط النتيجة */
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: #142b3c;
-            image-rendering: crisp-edges; /* لمظهر بكسل واضح */
             touch-action: none;
-            cursor: pointer;
         }
 
-        /* شاشة النهاية (overlay) */
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            image-rendering: crisp-edges;
+            touch-action: none;
+        }
+
+        /* شاشة النهاية */
         .gameover-overlay {
             position: fixed;
             top: 0;
@@ -175,31 +187,13 @@
             box-shadow: 0 2px 0 #6d4c1e;
         }
 
-        /* إخفاء العناصر عند عدم الحاجة */
         .hidden {
             visibility: hidden;
-        }
-
-        /* دعم الأجهزة الصغيرة جداً */
-        @media (max-width: 480px) {
-            .score-bar {
-                padding: 8px 12px;
-            }
-            .restart-btn {
-                padding: 8px 18px;
-            }
-        }
-
-        /* تعطيل scroll */
-        html, body {
-            overflow: hidden;
-            height: 100%;
         }
     </style>
 </head>
 <body>
-<div class="game-container">
-    <!-- شريط النتيجة مع زر إعادة التشغيل -->
+<div class="game-container" id="gameContainer">
     <div class="score-bar">
         <div class="score-label">
             <span>🍎</span>
@@ -208,21 +202,20 @@
         <div class="score-value" id="scoreDisplay">0</div>
         <button class="restart-btn" id="restartButton" aria-label="لعبة جديدة">🔄 جديد</button>
     </div>
+    <div class="canvas-wrapper">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+</div>
 
-    <!-- Canvas اللعبة -->
-    <canvas id="gameCanvas"></canvas>
-
-    <!-- شاشة النهاية (overlay) -->
-    <div class="gameover-overlay" id="gameoverOverlay">
-        <div class="gameover-card">
-            <div class="dua-text">
-                ادعوا لأحمد القطيشي بالرحمه<br>
-                وصلّى الله على النبي ﷺ
-            </div>
-            <div class="final-score" id="finalScoreSpan">0</div>
-            <button class="play-again-btn" id="overlayRestartBtn">▶️ العب مجدداً</button>
-            <div style="margin-top: 24px; color: #b6cdda; font-size: 24px;">🕋 رحمه الله</div>
+<div class="gameover-overlay" id="gameoverOverlay">
+    <div class="gameover-card">
+        <div class="dua-text">
+            ادعوا لأحمد القطيشي بالرحمه<br>
+            وصلّى الله على النبي ﷺ
         </div>
+        <div class="final-score" id="finalScoreSpan">0</div>
+        <button class="play-again-btn" id="overlayRestartBtn">▶️ العب مجدداً</button>
+        <div style="margin-top: 24px; color: #b6cdda; font-size: 24px;">🕋 رحمه الله</div>
     </div>
 </div>
 
@@ -231,14 +224,10 @@
         "use strict";
 
         // ---------- إعدادات اللعبة ----------
-        const GRID_SIZE = 18;          // 18x18 خلية (مناسب للشاشات)
-        const INIT_SNAKE = [
-            [8, 9],  // الرأس
-            [7, 9],
-            [6, 9]
-        ];
+        const GRID_SIZE = 18;
+        const INIT_SNAKE = [[8,9],[7,9],[6,9]];
         const INIT_DIR = 'RIGHT';
-        const BASE_SPEED = 130;         // مللي ثانية لكل تحديث
+        const BASE_SPEED = 130;
 
         // ---------- المتغيرات العامة ----------
         const canvas = document.getElementById('gameCanvas');
@@ -248,8 +237,8 @@
         const gameoverOverlay = document.getElementById('gameoverOverlay');
         const restartBtn = document.getElementById('restartButton');
         const overlayRestartBtn = document.getElementById('overlayRestartBtn');
+        const gameContainer = document.getElementById('gameContainer');
 
-        // حالة اللعبة
         let snake = [...INIT_SNAKE.map(pos => [...pos])];
         let direction = INIT_DIR;
         let nextDirection = INIT_DIR;
@@ -259,27 +248,17 @@
         let gameLoopInterval = null;
         let gameOverFlag = false;
 
-        // أبعاد canvas ديناميكية
         let cellSize = 30;
-        let offsetX = 0, offsetY = 0;
+        let canvasWidth = 0, canvasHeight = 0;
 
-        // منع الانعكاس (لا يمكن العودة للخلف)
         const oppositeDir = {
             'UP': 'DOWN', 'DOWN': 'UP', 'LEFT': 'RIGHT', 'RIGHT': 'LEFT'
         };
 
         // ---------- دوال مساعدة ----------
-        function randomInt(max) {
-            return Math.floor(Math.random() * max);
-        }
+        function randomInt(max) { return Math.floor(Math.random() * max); }
 
-        // توليد طعام في مكان فارغ
         function generateRandomFood() {
-            const totalCells = GRID_SIZE * GRID_SIZE;
-            if (snake.length >= totalCells) {
-                // فوز نظري (نادر) لكن نتعامل معه كخسارة لطيفة
-                return null;
-            }
             const snakeSet = new Set(snake.map(seg => `${seg[0]},${seg[1]}`));
             let freeCells = [];
             for (let i = 0; i < GRID_SIZE; i++) {
@@ -291,7 +270,6 @@
             return freeCells[randomInt(freeCells.length)];
         }
 
-        // إنهاء اللعبة
         function triggerGameOver() {
             if (!gameActive || gameOverFlag) return;
             gameActive = false;
@@ -300,23 +278,14 @@
                 clearInterval(gameLoopInterval);
                 gameLoopInterval = null;
             }
-            // عرض النتيجة النهائية
             finalScoreSpan.textContent = score;
             gameoverOverlay.style.visibility = 'visible';
         }
 
-        // إعادة ضبط كاملة
         function resetGame() {
-            // إخفاء overlay
             gameoverOverlay.style.visibility = 'hidden';
+            if (gameLoopInterval) clearInterval(gameLoopInterval);
             
-            // إيقاف أي loop سابق
-            if (gameLoopInterval) {
-                clearInterval(gameLoopInterval);
-                gameLoopInterval = null;
-            }
-
-            // إعادة الحالة الابتدائية
             snake = INIT_SNAKE.map(pos => [...pos]);
             direction = INIT_DIR;
             nextDirection = INIT_DIR;
@@ -325,15 +294,9 @@
             gameOverFlag = false;
             updateScoreDisplay();
 
-            // توليد طعام صالح
             const newFood = generateRandomFood();
-            if (newFood) food = newFood;
-            else {
-                // إذا حدث خطأ (نادر جداً) نضعه يدوياً
-                food = [12, 12];
-            }
+            food = newFood || [12, 12];
 
-            // بدء الحلقة
             startLoop();
             drawCanvas();
         }
@@ -346,21 +309,17 @@
             }, BASE_SPEED);
         }
 
-        // تحديث واجهة النتيجة
         function updateScoreDisplay() {
             scoreSpan.textContent = score;
         }
 
-        // منطق الحركة والأكل والاصطدام
         function gameTick() {
             if (!gameActive) return;
 
-            // تطبيق الاتجاه الجديد (بدون انعكاس)
             if (nextDirection && oppositeDir[nextDirection] !== direction) {
                 direction = nextDirection;
             }
 
-            // حساب رأس جديد
             const head = snake[0];
             let newHead = [...head];
             switch (direction) {
@@ -370,24 +329,16 @@
                 case 'DOWN':  newHead[1] += 1; break;
             }
 
-            // التحقق من الاصطدام بالجدار
             if (newHead[0] < 0 || newHead[0] >= GRID_SIZE || newHead[1] < 0 || newHead[1] >= GRID_SIZE) {
                 triggerGameOver();
-                drawCanvas(); // تحديث الرسم لإظهار الحالة الأخيرة
+                drawCanvas();
                 return;
             }
 
-            // هل أكل التفاحة؟
             const isEating = (newHead[0] === food[0] && newHead[1] === food[1]);
-
-            // بناء الأفعى الجديدة
             let newSnake = [newHead, ...snake];
+            if (!isEating) newSnake.pop();
 
-            if (!isEating) {
-                newSnake.pop(); // إزالة الذيل
-            }
-
-            // التحقق من اصطدام الرأس بالجسم (باستثناء الرأس نفسه)
             const headStr = `${newHead[0]},${newHead[1]}`;
             const bodyWithoutHead = newSnake.slice(1).map(seg => `${seg[0]},${seg[1]}`);
             if (bodyWithoutHead.includes(headStr)) {
@@ -396,156 +347,49 @@
                 return;
             }
 
-            // تحديث الأفعى
             snake = newSnake;
 
             if (isEating) {
                 score++;
                 updateScoreDisplay();
-
-                // توليد طعام جديد
                 const newFood = generateRandomFood();
-                if (newFood) {
-                    food = newFood;
-                } else {
-                    // لا يوجد مكان فارغ -> فوز! نعامله كخاتمة ونعرض شاشة النهاية برسالة الدعاء (نفس السلوك)
+                if (newFood) food = newFood;
+                else {
                     triggerGameOver();
                     drawCanvas();
                     return;
                 }
             }
-
-            // إعادة رسم
             drawCanvas();
         }
 
-        // ---------- الرسم على Canvas ----------
+        // ---------- ضبط أبعاد Canvas ديناميكيًا ----------
         function resizeCanvas() {
-            const containerHeight = window.innerHeight;
-            const barHeight = document.querySelector('.score-bar').offsetHeight;
-            const availableHeight = containerHeight - barHeight;
-            const availableWidth = window.innerWidth;
+            const containerRect = gameContainer.getBoundingClientRect();
+            const scoreBar = document.querySelector('.score-bar');
+            const scoreBarHeight = scoreBar.offsetHeight;
+            
+            // المساحة المتاحة للـ Canvas
+            const availableWidth = containerRect.width;
+            const availableHeight = containerRect.height - scoreBarHeight;
 
-            // نحدد حجم الخلية بناءً على الأبعاد الأصغر
+            // حساب حجم الخلية (مربع) بحيث يملأ المساحة بالكامل
             const sizeByWidth = availableWidth / GRID_SIZE;
             const sizeByHeight = availableHeight / GRID_SIZE;
             cellSize = Math.floor(Math.min(sizeByWidth, sizeByHeight));
             
-            canvas.width = GRID_SIZE * cellSize;
-            canvas.height = GRID_SIZE * cellSize;
+            canvasWidth = GRID_SIZE * cellSize;
+            canvasHeight = GRID_SIZE * cellSize;
             
-            // توسيط اللوحة (offset للرسم)
-            offsetX = 0;
-            offsetY = 0;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            canvas.style.width = canvasWidth + 'px';
+            canvas.style.height = canvasHeight + 'px';
             
             drawCanvas();
         }
 
-        function drawCanvas() {
-            if (!canvas || !ctx) return;
-            
-            const w = canvas.width;
-            const h = canvas.height;
-            
-            // خلفية
-            ctx.fillStyle = '#1a3a4f';
-            ctx.fillRect(0, 0, w, h);
-            
-            // رسم الشبكة (خطوط باهتة)
-            ctx.strokeStyle = '#2a5a6f';
-            ctx.lineWidth = 1;
-            for (let i = 0; i <= GRID_SIZE; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * cellSize, 0);
-                ctx.lineTo(i * cellSize, h);
-                ctx.strokeStyle = '#2e5f75';
-                ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.moveTo(0, i * cellSize);
-                ctx.lineTo(w, i * cellSize);
-                ctx.stroke();
-            }
-
-            // رسم التفاحة
-            if (food) {
-                const [fx, fy] = food;
-                const x = fx * cellSize;
-                const y = fy * cellSize;
-                // ظل خفيف
-                ctx.shadowColor = '#f00';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = '#e63434';
-                ctx.beginPath();
-                ctx.arc(x + cellSize/2, y + cellSize/2, cellSize*0.4, 0, 2*Math.PI);
-                ctx.fill();
-                // ورقة
-                ctx.shadowBlur = 8;
-                ctx.fillStyle = '#7ec850';
-                ctx.beginPath();
-                ctx.ellipse(x + cellSize*0.65, y + cellSize*0.3, cellSize*0.15, cellSize*0.2, 0.4, 0, 2*Math.PI);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                ctx.shadowColor = 'transparent';
-                // بذور
-                ctx.fillStyle = '#5e2e1c';
-                ctx.beginPath();
-                ctx.arc(x + cellSize*0.35, y + cellSize*0.5, cellSize*0.06, 0, 2*Math.PI);
-                ctx.fill();
-            }
-
-            // رسم الدودة
-            if (snake.length > 0) {
-                for (let i = 0; i < snake.length; i++) {
-                    const [sx, sy] = snake[i];
-                    const x = sx * cellSize;
-                    const y = sy * cellSize;
-                    
-                    // تدرج لوني: الرأس أغمق
-                    const isHead = (i === 0);
-                    const gradient = ctx.createRadialGradient(
-                        x + cellSize*0.3, y + cellSize*0.3, 2,
-                        x + cellSize/2, y + cellSize/2, cellSize*0.7
-                    );
-                    if (isHead) {
-                        gradient.addColorStop(0, '#6db36d');
-                        gradient.addColorStop(1, '#1f6d1f');
-                    } else {
-                        gradient.addColorStop(0, '#8fce8f');
-                        gradient.addColorStop(1, '#2d862d');
-                    }
-                    ctx.fillStyle = gradient;
-                    
-                    // حواف دائرية
-                    const padding = isHead ? 2 : 3;
-                    const radius = cellSize * 0.15;
-                    ctx.beginPath();
-                    ctx.roundRect(x+2, y+2, cellSize-4, cellSize-4, radius);
-                    ctx.fill();
-                    
-                    // عيون للرأس
-                    if (isHead) {
-                        ctx.fillStyle = 'white';
-                        ctx.beginPath();
-                        ctx.arc(x + cellSize*0.65, y + cellSize*0.35, cellSize*0.12, 0, 2*Math.PI);
-                        ctx.arc(x + cellSize*0.35, y + cellSize*0.35, cellSize*0.12, 0, 2*Math.PI);
-                        ctx.fill();
-                        ctx.fillStyle = '#0b1522';
-                        ctx.beginPath();
-                        ctx.arc(x + cellSize*0.7, y + cellSize*0.32, cellSize*0.07, 0, 2*Math.PI);
-                        ctx.arc(x + cellSize*0.4, y + cellSize*0.32, cellSize*0.07, 0, 2*Math.PI);
-                        ctx.fill();
-                    }
-                }
-            }
-
-            // إذا كانت اللعبة غير نشطة (لكن لم تظهر overlay بعد) نرسم تأثير خفيف
-            if (!gameActive && !gameOverFlag) {
-                // حالة التوقف المؤقت نادرة
-            }
-        }
-
-        // إضافة roundRect
+        // ---------- الرسم ----------
         CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
             if (w < 2 * r) r = w / 2;
             if (h < 2 * r) r = h / 2;
@@ -561,66 +405,133 @@
             return this;
         };
 
-        // ---------- التحكم (كيبورد + لمس) ----------
-        function handleKeydown(e) {
-            if (!gameActive) return;
-            const key = e.key;
-            // منع التمرير بالأسهم
-            if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key)) {
-                e.preventDefault();
+        function drawCanvas() {
+            if (!canvas || !ctx) return;
+            
+            const w = canvas.width;
+            const h = canvas.height;
+            
+            ctx.fillStyle = '#1a3a4f';
+            ctx.fillRect(0, 0, w, h);
+            
+            // شبكة
+            ctx.strokeStyle = '#2e5f75';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * cellSize, 0);
+                ctx.lineTo(i * cellSize, h);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * cellSize);
+                ctx.lineTo(w, i * cellSize);
+                ctx.stroke();
             }
-            
-            let newDir = null;
-            if (key === 'ArrowRight') newDir = 'RIGHT';
-            else if (key === 'ArrowLeft') newDir = 'LEFT';
-            else if (key === 'ArrowUp') newDir = 'UP';
-            else if (key === 'ArrowDown') newDir = 'DOWN';
-            
-            if (newDir) {
-                // لا نسمح بالانعكاس الفوري
-                if (oppositeDir[newDir] !== direction) {
-                    nextDirection = newDir;
+
+            // تفاحة
+            if (food) {
+                const [fx, fy] = food;
+                const x = fx * cellSize;
+                const y = fy * cellSize;
+                ctx.shadowColor = '#f00';
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = '#e63434';
+                ctx.beginPath();
+                ctx.arc(x + cellSize/2, y + cellSize/2, cellSize*0.4, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.fillStyle = '#7ec850';
+                ctx.beginPath();
+                ctx.ellipse(x + cellSize*0.65, y + cellSize*0.3, cellSize*0.15, cellSize*0.2, 0.4, 0, 2*Math.PI);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#5e2e1c';
+                ctx.beginPath();
+                ctx.arc(x + cellSize*0.35, y + cellSize*0.5, cellSize*0.06, 0, 2*Math.PI);
+                ctx.fill();
+            }
+
+            // الدودة
+            if (snake.length) {
+                for (let i = 0; i < snake.length; i++) {
+                    const [sx, sy] = snake[i];
+                    const x = sx * cellSize;
+                    const y = sy * cellSize;
+                    const isHead = (i === 0);
+                    const gradient = ctx.createRadialGradient(
+                        x + cellSize*0.3, y + cellSize*0.3, 2,
+                        x + cellSize/2, y + cellSize/2, cellSize*0.7
+                    );
+                    if (isHead) {
+                        gradient.addColorStop(0, '#6db36d');
+                        gradient.addColorStop(1, '#1f6d1f');
+                    } else {
+                        gradient.addColorStop(0, '#8fce8f');
+                        gradient.addColorStop(1, '#2d862d');
+                    }
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.roundRect(x+2, y+2, cellSize-4, cellSize-4, cellSize*0.15);
+                    ctx.fill();
+                    
+                    if (isHead) {
+                        ctx.fillStyle = 'white';
+                        ctx.beginPath();
+                        ctx.arc(x + cellSize*0.65, y + cellSize*0.35, cellSize*0.12, 0, 2*Math.PI);
+                        ctx.arc(x + cellSize*0.35, y + cellSize*0.35, cellSize*0.12, 0, 2*Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = '#0b1522';
+                        ctx.beginPath();
+                        ctx.arc(x + cellSize*0.7, y + cellSize*0.32, cellSize*0.07, 0, 2*Math.PI);
+                        ctx.arc(x + cellSize*0.4, y + cellSize*0.32, cellSize*0.07, 0, 2*Math.PI);
+                        ctx.fill();
+                    }
                 }
             }
         }
 
-        // التحكم باللمس (السحب)
-        let touchStartX = 0, touchStartY = 0;
-        let touchMoved = false;
+        // ---------- التحكم ----------
+        function handleKeydown(e) {
+            if (!gameActive) return;
+            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
+                e.preventDefault();
+            }
+            let newDir = null;
+            if (e.key === 'ArrowRight') newDir = 'RIGHT';
+            else if (e.key === 'ArrowLeft') newDir = 'LEFT';
+            else if (e.key === 'ArrowUp') newDir = 'UP';
+            else if (e.key === 'ArrowDown') newDir = 'DOWN';
+            if (newDir && oppositeDir[newDir] !== direction) {
+                nextDirection = newDir;
+            }
+        }
 
+        let touchStartX = 0, touchStartY = 0;
         function handleTouchStart(e) {
             if (!gameActive) return;
             e.preventDefault();
             const touch = e.touches[0];
             touchStartX = touch.clientX;
             touchStartY = touch.clientY;
-            touchMoved = false;
         }
 
         function handleTouchMove(e) {
             if (!gameActive) return;
             e.preventDefault();
             if (!touchStartX) return;
-            
             const touch = e.touches[0];
             const dx = touch.clientX - touchStartX;
             const dy = touch.clientY - touchStartY;
-            
             if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
             
-            touchMoved = true;
             let newDir = null;
             if (Math.abs(dx) > Math.abs(dy)) {
                 newDir = dx > 0 ? 'RIGHT' : 'LEFT';
             } else {
                 newDir = dy > 0 ? 'DOWN' : 'UP';
             }
-            
             if (newDir && oppositeDir[newDir] !== direction) {
                 nextDirection = newDir;
             }
-            
-            // إعادة تعيين لتجنب التغيير المستمر
             touchStartX = touch.clientX;
             touchStartY = touch.clientY;
         }
@@ -630,17 +541,24 @@
             touchStartX = 0;
         }
 
-        // منع أحداث الفأرة الافتراضية
-        function preventDefaults(e) {
-            e.preventDefault();
+        // ---------- مراقبة تغير حجم الحاوية ----------
+        const resizeObserver = new ResizeObserver(() => {
+            resizeCanvas();
+        });
+        resizeObserver.observe(gameContainer);
+
+        // دعم visualViewport للهواتف
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', resizeCanvas);
+            window.visualViewport.addEventListener('scroll', resizeCanvas);
         }
 
-        // ---------- ربط الأحداث وبدء اللعبة ----------
+        // أحداث إضافية
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 30));
+
+        // ---------- ربط الأحداث ----------
         function bindEvents() {
-            window.addEventListener('resize', () => {
-                resizeCanvas();
-            });
-            
             document.addEventListener('keydown', handleKeydown);
             
             canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
@@ -648,30 +566,20 @@
             canvas.addEventListener('touchend', handleTouchEnd);
             canvas.addEventListener('touchcancel', handleTouchEnd);
             
-            // منع السحب خارج اللعبة
             document.addEventListener('touchmove', (e) => {
                 if (e.target === canvas || gameoverOverlay.contains(e.target)) {
                     e.preventDefault();
                 }
             }, {passive: false});
             
-            // إعادة التشغيل من الأزرار
             restartBtn.addEventListener('click', resetGame);
             overlayRestartBtn.addEventListener('click', resetGame);
-            
-            // النقر على overlay الخارج لا يفعل شيئاً
-            gameoverOverlay.addEventListener('click', (e) => {
-                if (e.target === gameoverOverlay) {
-                    // لا تغلق إلا بالزر
-                }
-            });
         }
 
-        // بداية أولية
         function init() {
-            resizeCanvas();
             bindEvents();
-            resetGame(); // يبدأ اللعبة مباشرة
+            resizeCanvas();  // تأكيد الأبعاد الأولية
+            resetGame();
         }
 
         init();
