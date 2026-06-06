@@ -1,589 +1,742 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🐍 دودة - ادعوا لأحمد القطيشي</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: fixed;
-            touch-action: none;
-            background: #0b1522;
-        }
-
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Arial', 'Segoe UI', sans-serif;
-        }
-
-        .game-container {
-            position: relative;
-            width: 100%;
-            height: 100%; /* سيتم ضبطه ديناميكيًا عبر JS */
-            display: flex;
-            flex-direction: column;
-            background: #0f1a2b;
-        }
-
-        /* شريط النتيجة العلوي */
-        .score-bar {
-            padding: 12px 20px;
-            background: #1a2e4a;
-            color: #f5e37a;
-            font-size: clamp(26px, 8vw, 48px);
-            font-weight: bold;
-            text-align: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            border-bottom: 3px solid #f4b836;
-            letter-spacing: 2px;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-        }
-
-        .score-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .score-value {
-            background: #0b1522;
-            padding: 6px 24px;
-            border-radius: 60px;
-            color: #ffd966;
-            font-size: clamp(30px, 9vw, 52px);
-            min-width: 100px;
-            text-align: center;
-            border: 2px solid #f4b836;
-        }
-
-        .restart-btn {
-            background: #2e5a3b;
-            color: white;
-            border: none;
-            border-radius: 60px;
-            padding: 12px 24px;
-            font-size: clamp(22px, 6vw, 36px);
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #163320;
-            transition: 0.1s ease;
-            border: 2px solid #8fc97f;
-            touch-action: manipulation;
-            -webkit-appearance: none;
-        }
-
-        .restart-btn:active {
-            transform: translateY(4px);
-            box-shadow: none;
-            background: #1e402a;
-        }
-
-        /* Canvas wrapper لضمان الملء */
-        .canvas-wrapper {
-            flex: 1;
-            width: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #142b3c;
-            touch-action: none;
-        }
-
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            image-rendering: crisp-edges;
-            touch-action: none;
-        }
-
-        /* شاشة النهاية */
-        .gameover-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(8, 18, 28, 0.95);
-            backdrop-filter: blur(6px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            visibility: hidden;
-            flex-direction: column;
-            padding: 20px;
-            touch-action: none;
-        }
-
-        .gameover-card {
-            background: #1c3144;
-            padding: 30px 20px;
-            border-radius: 60px;
-            max-width: 700px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 20px 0 #0a121c, 0 10px 30px black;
-            border: 4px solid #eab676;
-        }
-
-        .dua-text {
-            color: #f3d9a4;
-            font-size: clamp(28px, 8vw, 52px);
-            font-weight: bold;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            text-shadow: 3px 3px 0 #1f3a4e;
-            word-break: break-word;
-        }
-
-        .final-score {
-            color: #ffd966;
-            font-size: clamp(36px, 10vw, 64px);
-            background: #0f1f2b;
-            display: inline-block;
-            padding: 16px 48px;
-            border-radius: 80px;
-            margin: 20px 0;
-            border: 3px solid #eab676;
-        }
-
-        .play-again-btn {
-            background: #c49a3f;
-            color: #0b1522;
-            border: none;
-            border-radius: 60px;
-            padding: 20px 40px;
-            font-size: clamp(30px, 8vw, 50px);
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #6d4c1e;
-            transition: 0.1s;
-            border: 3px solid #fbe4a0;
-            margin-top: 20px;
-            touch-action: manipulation;
-        }
-
-        .play-again-btn:active {
-            transform: translateY(6px);
-            box-shadow: 0 2px 0 #6d4c1e;
-        }
-
-        .hidden {
-            visibility: hidden;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
+  <title>ETERNAL GUARDIAN | الحارس الأبدي</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body {
+      background: radial-gradient(circle at 20% 30%, #0a0f1e, #03050a);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #e0e0e0;
+    }
+    .game-container {
+      width: 100%;
+      max-width: 900px;
+      background: rgba(10, 20, 40, 0.88);
+      backdrop-filter: blur(30px);
+      border: 2px solid #4a3f7a;
+      border-radius: 40px;
+      padding: 20px;
+      box-shadow: 0 0 100px #1f1b3a;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 900;
+      background: linear-gradient(180deg, #f0e68c, #c9a04b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 25px #b8860b;
+      letter-spacing: 2px;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0b0c1a;
+      border-radius: 100px;
+      padding: 8px 20px;
+      border: 1px solid #5e4b8c;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .id-badge {
+      background: #1e1a2f;
+      padding: 6px 18px;
+      border-radius: 40px;
+      font-weight: bold;
+      letter-spacing: 5px;
+      color: #ffd966;
+      font-size: 1.4rem;
+    }
+    .rank-badge {
+      background: #2c2340;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-weight: bold;
+      color: #ffb347;
+      font-size: 0.9rem;
+    }
+    .coins {
+      background: #2e2a1f;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-weight: bold;
+      color: #ffc107;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .nav-tab {
+      background: #1d1f33;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      border: 1px solid #4a3f6a;
+      font-weight: bold;
+      font-size: 0.85rem;
+      transition: 0.2s;
+    }
+    .nav-tab.active {
+      background: #4f4370;
+      border-color: #c9a04b;
+      color: #ffd966;
+    }
+    .panel {
+      background: #0f1326;
+      border-radius: 25px;
+      padding: 15px;
+      border: 1px solid #3b305a;
+      min-height: 280px;
+    }
+    .creature-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .creature-card {
+      background: #181c30;
+      border-radius: 18px;
+      padding: 8px;
+      width: 85px;
+      text-align: center;
+      border: 2px solid #333;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .creature-card.selected {
+      border-color: gold;
+      box-shadow: 0 0 18px gold;
+    }
+    .creature-card.evolved {
+      border-color: #00ffff;
+    }
+    .creature-emoji {
+      font-size: 2.4rem;
+    }
+    .btn {
+      background: linear-gradient(180deg, #3a2f5c, #1e1837);
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      border-bottom: 3px solid #5f4b9c;
+      transition: 0.2s;
+      font-size: 0.85rem;
+    }
+    .btn:active {
+      transform: translateY(2px);
+    }
+    .btn.gold {
+      background: linear-gradient(180deg, #c9a04b, #7a5f2a);
+      border-bottom-color: #ffd966;
+    }
+    .log-box {
+      background: #030617;
+      border-radius: 15px;
+      padding: 10px;
+      height: 90px;
+      overflow-y: auto;
+      font-size: 0.8rem;
+      border: 1px solid #4a3a6a;
+      color: #ccc;
+    }
+    input,
+    select {
+      background: #1a1e33;
+      border: 1px solid #5b4a7a;
+      color: white;
+      padding: 8px;
+      border-radius: 20px;
+      margin: 4px;
+    }
+    .auction-item {
+      background: #1c1f35;
+      border-radius: 15px;
+      padding: 8px 12px;
+      margin: 6px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .progress-bar {
+      background: #222;
+      border-radius: 10px;
+      height: 12px;
+      width: 100%;
+      margin: 4px 0;
+    }
+    .progress-fill {
+      background: #c9a04b;
+      height: 100%;
+      border-radius: 10px;
+    }
+    .celebration {
+      animation: glow 0.8s ease-in-out infinite alternate;
+    }
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px gold;
+      }
+      to {
+        text-shadow: 0 0 30px gold, 0 0 60px orange;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="game-container" id="gameContainer">
-    <div class="score-bar">
-        <div class="score-label">
-            <span>🍎</span>
-            <span>النقاط</span>
+  <div class="game-container">
+    <h1>👑 ETERNAL GUARDIAN 👑</h1>
+
+    <div class="top-bar">
+      <span class="id-badge" id="playerIdDisplay">00001</span>
+      <span class="rank-badge" id="rankDisplay">⚔️ جندي</span>
+      <span class="coins" id="coinsDisplay">🪙 1500</span>
+      <span>🌟 <span id="ratingDisplay">0</span> نقطة</span>
+      <span id="seasonTimer">🗓️ الموسم: 30 يوم</span>
+    </div>
+
+    <div class="nav-tabs">
+      <span class="nav-tab active" data-panel="home">🏠 الرئيسية</span>
+      <span class="nav-tab" data-panel="collection">🐾 المجموعة</span>
+      <span class="nav-tab" data-panel="shop">🛒 المتجر</span>
+      <span class="nav-tab" data-panel="auction">🔨 المزاد</span>
+      <span class="nav-tab" data-panel="missions">📜 المهام</span>
+      <span class="nav-tab" data-panel="leaderboard">🏆 التصنيف</span>
+    </div>
+
+    <!-- الرئيسية -->
+    <div id="homePanel" class="panel">
+      <div style="display:flex; gap:15px; align-items:center; flex-wrap:wrap;">
+        <div id="activeCreatureEmoji" style="font-size:5rem;">🐕</div>
+        <div>
+          <div><strong id="activeCreatureName">كلب - Common</strong></div>
+          <div id="activeCreatureTier" style="color:#bdc3c7;">عادي</div>
+          <div>❤️ <span id="activeHP">100</span> | 🗡️ <span id="activeDmg">20</span> | 🛡️ <span id="activeDef">5</span></div>
+          <div>⚡ سرعة: <span id="activeSpeed">50</span> م/ث</div>
+          <div>✨ <span id="activeSkill">Hunter's Pursuit</span></div>
+          <div>📊 المستوى: <span id="activeLevel">1</span> | ⭐ تطور: <span id="activeEvo">0/3</span></div>
         </div>
-        <div class="score-value" id="scoreDisplay">0</div>
-        <button class="restart-btn" id="restartButton" aria-label="لعبة جديدة">🔄 جديد</button>
+      </div>
+      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+        <button class="btn" id="searchBtn">🔍 استكشاف كوكب</button>
+        <button class="btn" id="attackBtn">⚔️ هجوم</button>
+        <button class="btn gold" id="evolveBtn">🔮 تطوير الوحش</button>
+      </div>
+      <div style="margin-top:8px;">🎯 الهدف: <span id="targetInfo">لا يوجد</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="targetHPBar" style="width:0%;"></div></div>
     </div>
-    <div class="canvas-wrapper">
-        <canvas id="gameCanvas"></canvas>
+
+    <!-- المجموعة -->
+    <div id="collectionPanel" class="panel" style="display:none;">
+      <div class="creature-grid" id="collectionGrid"></div>
+      <button class="btn" id="setActiveBtn" style="margin-top:10px;">✅ تعيين كوحش نشط</button>
     </div>
-</div>
 
-<div class="gameover-overlay" id="gameoverOverlay">
-    <div class="gameover-card">
-        <div class="dua-text">
-            ادعوا لأحمد القطيشي بالرحمه<br>
-            وصلّى الله على النبي ﷺ
-        </div>
-        <div class="final-score" id="finalScoreSpan">0</div>
-        <button class="play-again-btn" id="overlayRestartBtn">▶️ العب مجدداً</button>
-        <div style="margin-top: 24px; color: #b6cdda; font-size: 24px;">🕋 رحمه الله</div>
+    <!-- المتجر -->
+    <div id="shopPanel" class="panel" style="display:none;">
+      <h4>🎁 شراء الباكجات</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;">
+        <button class="btn" id="buyNormal">عادي (100)</button>
+        <button class="btn" id="buyPremium">مميز (500)</button>
+        <button class="btn" id="buySuper">خارق (1000)</button>
+        <button class="btn gold" id="buyLegendary">أسطوري (100k)</button>
+      </div>
+      <h4>💰 بيع وحش</h4>
+      <select id="sellSelect"></select>
+      <button class="btn" id="sellBtn">بيع</button>
+      <h4 style="margin-top:10px;">🛡️ ترقية الكوكب</h4>
+      <button class="btn" id="upgradeShield">درع (+100k دفاع) - 5000💰</button>
     </div>
-</div>
 
-<script>
-    (function(){
-        "use strict";
+    <!-- المزاد -->
+    <div id="auctionPanel" class="panel" style="display:none;">
+      <div id="auctionList"></div>
+      <button class="btn" id="refreshAuction">🔄 تحديث المزادات</button>
+    </div>
 
-        // ---------- إعدادات اللعبة ----------
-        const GRID_SIZE = 18;
-        const INIT_SNAKE = [[8,9],[7,9],[6,9]];
-        const INIT_DIR = 'RIGHT';
-        const BASE_SPEED = 130;
+    <!-- المهام -->
+    <div id="missionsPanel" class="panel" style="display:none;">
+      <div id="missionsList"></div>
+    </div>
 
-        // ---------- المتغيرات العامة ----------
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreSpan = document.getElementById('scoreDisplay');
-        const finalScoreSpan = document.getElementById('finalScoreSpan');
-        const gameoverOverlay = document.getElementById('gameoverOverlay');
-        const restartBtn = document.getElementById('restartButton');
-        const overlayRestartBtn = document.getElementById('overlayRestartBtn');
-        const gameContainer = document.getElementById('gameContainer');
+    <!-- التصنيف -->
+    <div id="leaderboardPanel" class="panel" style="display:none;">
+      <h4>🏆 أفضل اللاعبين هذا الموسم</h4>
+      <div id="leaderboardList"></div>
+      <div style="margin-top:12px; font-weight:bold;">👑 بطل الموسم السابق: <span id="lastChampion">-</span></div>
+    </div>
 
-        let snake = [...INIT_SNAKE.map(pos => [...pos])];
-        let direction = INIT_DIR;
-        let nextDirection = INIT_DIR;
-        let food = [10, 10];
-        let score = 0;
-        let gameActive = false;
-        let gameLoopInterval = null;
-        let gameOverFlag = false;
+    <div class="log-box" id="logPanel">⏳ الحارس الأبدي يراقب الكون...</div>
+  </div>
 
-        let cellSize = 30;
-        let canvasWidth = 0, canvasHeight = 0;
+  <script>
+    (function() {
+      // ==================== البيانات الأساسية ====================
+      const TIERS = {
+        COMMON: { name: 'عادي', color: '#2ecc71', dmg: 20, def: 5, hp: 100, speed: 50, prob: 0.70, value: 50,
+          emojiMod: '' },
+        UNCOMMON: { name: 'غير عادي', color: '#95a5a6', dmg: 45, def: 12, hp: 220, speed: 180, prob: 0.45,
+          value: 200, emojiMod: '⬜' },
+        RARE: { name: 'نادر', color: '#3498db', dmg: 110, def: 30, hp: 500, speed: 600, prob: 0.30, value: 800,
+          emojiMod: '🔵' },
+        INFERNO: { name: 'ناري', color: '#c0c0c0', dmg: 350, def: 80, hp: 1500, speed: 2500, prob: 0.10, value: 4000,
+          emojiMod: '🥈' },
+        COSMIC: { name: 'كوني', color: '#8e44ad', dmg: 9000, def: 500, hp: 8000, speed: 50000, prob: 0.01,
+          value: 50000, emojiMod: '🌌' },
+        FORBIDDEN: { name: 'ممنوع', color: '#f1c40f', dmg: 99999, def: 9999, hp: 99999, speed: 1000000, prob: 0.001,
+          value: 999999, emojiMod: '👑' }
+      };
 
-        const oppositeDir = {
-            'UP': 'DOWN', 'DOWN': 'UP', 'LEFT': 'RIGHT', 'RIGHT': 'LEFT'
+      const BASE_CREATURES = [
+        { name: 'كلب', emoji: '🐕', skill: 'Hunter\'s Pursuit', skillDesc: 'زيادة سرعة الهجوم' },
+        { name: 'أسد', emoji: '🦁', skill: 'King\'s Roar', skillDesc: 'إضعاف الأعداء' },
+        { name: 'نمر', emoji: '🐅', skill: 'Rapid Claws', skillDesc: 'ضربات سريعة متعددة' },
+        { name: 'فيل', emoji: '🐘', skill: 'Iron Fortress', skillDesc: 'دفاع هائل' },
+        { name: 'ذئب', emoji: '🐺', skill: 'Pack Summon', skillDesc: 'استدعاء ذئاب' },
+        { name: 'نسر', emoji: '🦅', skill: 'Sky Vision', skillDesc: 'كشف نقاط الضعف' },
+        { name: 'دب', emoji: '🐻', skill: 'Primal Rage', skillDesc: 'قوة أكبر عند الضرر' },
+        { name: 'ثور', emoji: '🐂', skill: 'Planet Crusher', skillDesc: 'دمار الحصون' },
+        { name: 'كوبرا', emoji: '🐍', skill: 'Cosmic Venom', skillDesc: 'ضرر مستمر' },
+        { name: 'تمساح', emoji: '🐊', skill: 'Ancient Grip', skillDesc: 'إبطاء الأعداء' },
+        { name: 'غوريلا', emoji: '🦍', skill: 'Titan Fist', skillDesc: 'ضربة واحدة مدمرة' },
+        { name: 'وحيد القرن', emoji: '🦏', skill: 'Piercing Horn', skillDesc: 'اختراق الدروع' },
+        { name: 'تنين', emoji: '🐉', skill: 'Starfire Breath', skillDesc: 'هجوم منطقة' }
+      ];
+
+      const FORBIDDEN_CREATURES = [
+        { name: 'Eternal Guardian', emoji: '🐘', skill: 'Cosmic Judgment', skillDesc: 'حماية الكون',
+          color: '#f1c40f' },
+        { name: 'Void Dragon', emoji: '🐉', skill: 'Gravity Manipulation', skillDesc: 'التلاعب بالجاذبية',
+          color: '#1a1a2e' },
+        { name: 'Celestial Phoenix', emoji: '🦅', skill: 'Immortal Resurrection', skillDesc: 'إحياء ذاتي',
+        color: '#ff6b6b' },
+        { name: 'Omega Wolf', emoji: '🐺', skill: 'Army Commander', skillDesc: 'قيادة الجيوش', color: '#ecf0f1' }
+      ];
+
+      const RANKS = [
+        { name: 'جندي', min: 0 },
+        { name: 'محارب', min: 1000 },
+        { name: 'قائد', min: 5000 },
+        { name: 'كابتن', min: 15000 },
+        { name: 'جنرال مجري', min: 40000 },
+        { name: 'سيد الكوكب', min: 100000 },
+        { name: 'فاتح المجرة', min: 300000 },
+        { name: 'حاكم الكون', min: 700000 },
+        { name: 'إمبراطور الكون', min: 1000000 },
+        { name: 'إمبراطور الكون الأعظم', min: 1500000 }
+      ];
+
+      // ==================== حالة اللاعب ====================
+      let player = {
+        id: generateId(),
+        coins: 1500,
+        rating: 0,
+        collection: [],
+        activeCreatureId: null,
+        targetPlanet: null,
+        planetShield: 0,
+        seasonDaysLeft: 30,
+        lastChampion: 'Player_00042'
+      };
+
+      function generateId() {
+        let stored = localStorage.getItem('eternal_guardian_id');
+        if (stored) return stored;
+        let newId = (10000 + Math.floor(Date.now() / 1000) % 90000).toString().padStart(5, '0');
+        localStorage.setItem('eternal_guardian_id', newId);
+        return newId;
+      }
+
+      function createCreature(tierKey, baseData) {
+        let tier = TIERS[tierKey];
+        let isForbidden = (tierKey === 'FORBIDDEN');
+        let base = isForbidden ?
+          FORBIDDEN_CREATURES.find(f => f.name === baseData.name) || FORBIDDEN_CREATURES[0] :
+          baseData;
+
+        return {
+          id: Date.now() + Math.random(),
+          name: base.name,
+          emoji: base.emoji,
+          skill: base.skill,
+          skillDesc: base.skillDesc || '',
+          tierKey,
+          tierName: tier.name,
+          color: tier.color,
+          baseDmg: tier.dmg,
+          baseDef: tier.def,
+          baseHp: tier.hp,
+          baseSpeed: tier.speed,
+          dmg: tier.dmg,
+          def: tier.def,
+          hp: tier.hp,
+          speed: tier.speed,
+          value: tier.value,
+          level: 1,
+          evoStage: 0,
+          maxEvo: 3,
+          isForbidden
         };
+      }
 
-        // ---------- دوال مساعدة ----------
-        function randomInt(max) { return Math.floor(Math.random() * max); }
+      // تهيئة المجموعة
+      if (player.collection.length === 0) {
+        let starter = createCreature('COMMON', BASE_CREATURES.find(c => c.name === 'كلب'));
+        player.collection.push(starter);
+        player.activeCreatureId = starter.id;
+      }
 
-        function generateRandomFood() {
-            const snakeSet = new Set(snake.map(seg => `${seg[0]},${seg[1]}`));
-            let freeCells = [];
-            for (let i = 0; i < GRID_SIZE; i++) {
-                for (let j = 0; j < GRID_SIZE; j++) {
-                    if (!snakeSet.has(`${i},${j}`)) freeCells.push([i, j]);
-                }
-            }
-            if (freeCells.length === 0) return null;
-            return freeCells[randomInt(freeCells.length)];
+      function getActive() {
+        return player.collection.find(c => c.id === player.activeCreatureId) || player.collection[0];
+      }
+
+      // ==================== تحديث الواجهة ====================
+      function updateUI() {
+        document.getElementById('playerIdDisplay').innerText = player.id;
+        document.getElementById('coinsDisplay').innerText = `🪙 ${player.coins.toLocaleString()}`;
+        document.getElementById('ratingDisplay').innerText = player.rating.toLocaleString();
+
+        let rank = RANKS.filter(r => player.rating >= r.min).pop();
+        document.getElementById('rankDisplay').innerText = `⚜️ ${rank.name}`;
+
+        let a = getActive();
+        if (a) {
+          document.getElementById('activeCreatureEmoji').innerText = a.emoji;
+          document.getElementById('activeCreatureName').innerText = `${a.name} - ${a.tierName}`;
+          document.getElementById('activeCreatureTier').innerText = a.tierName;
+          document.getElementById('activeCreatureTier').style.color = a.color;
+          document.getElementById('activeHP').innerText = a.hp;
+          document.getElementById('activeDmg').innerText = a.dmg;
+          document.getElementById('activeDef').innerText = a.def;
+          document.getElementById('activeSpeed').innerText = a.speed.toLocaleString();
+          document.getElementById('activeSkill').innerText = `${a.skill} (${a.skillDesc})`;
+          document.getElementById('activeLevel').innerText = a.level;
+          document.getElementById('activeEvo').innerText = `${a.evoStage}/${a.maxEvo}`;
         }
 
-        function triggerGameOver() {
-            if (!gameActive || gameOverFlag) return;
-            gameActive = false;
-            gameOverFlag = true;
-            if (gameLoopInterval) {
-                clearInterval(gameLoopInterval);
-                gameLoopInterval = null;
-            }
-            finalScoreSpan.textContent = score;
-            gameoverOverlay.style.visibility = 'visible';
+        if (player.targetPlanet && player.targetPlanet.health > 0) {
+          let pct = (1 - player.targetPlanet.health / player.targetPlanet.maxHealth) * 100;
+          document.getElementById('targetHPBar').style.width = pct + '%';
+        } else {
+          document.getElementById('targetHPBar').style.width = '0%';
         }
 
-        function resetGame() {
-            gameoverOverlay.style.visibility = 'hidden';
-            if (gameLoopInterval) clearInterval(gameLoopInterval);
-            
-            snake = INIT_SNAKE.map(pos => [...pos]);
-            direction = INIT_DIR;
-            nextDirection = INIT_DIR;
-            score = 0;
-            gameActive = true;
-            gameOverFlag = false;
-            updateScoreDisplay();
+        document.getElementById('seasonTimer').innerText = `🗓️ الموسم: ${player.seasonDaysLeft} يوم`;
+        document.getElementById('lastChampion').innerText = player.lastChampion;
 
-            const newFood = generateRandomFood();
-            food = newFood || [12, 12];
+        renderCollection();
+        updateSellList();
+        renderMissions();
+        renderLeaderboard();
+      }
 
-            startLoop();
-            drawCanvas();
-        }
+      function renderCollection() {
+        let grid = document.getElementById('collectionGrid');
+        grid.innerHTML = player.collection.map(c => `
+          <div class="creature-card ${c.id===player.activeCreatureId?'selected':''} ${c.evoStage>0?'evolved':''}" data-id="${c.id}">
+            <div class="creature-emoji" style="color:${c.color}">${c.emoji}</div>
+            <div style="font-size:0.7rem;">${c.name}</div>
+            <div style="font-size:0.6rem; color:${c.color}">${c.tierName} Lv${c.level}</div>
+            <div style="font-size:0.5rem;">⭐${c.evoStage}/${c.maxEvo}</div>
+          </div>
+        `).join('');
 
-        function startLoop() {
-            if (gameLoopInterval) clearInterval(gameLoopInterval);
-            gameLoopInterval = setInterval(() => {
-                if (!gameActive) return;
-                gameTick();
-            }, BASE_SPEED);
-        }
-
-        function updateScoreDisplay() {
-            scoreSpan.textContent = score;
-        }
-
-        function gameTick() {
-            if (!gameActive) return;
-
-            if (nextDirection && oppositeDir[nextDirection] !== direction) {
-                direction = nextDirection;
-            }
-
-            const head = snake[0];
-            let newHead = [...head];
-            switch (direction) {
-                case 'RIGHT': newHead[0] += 1; break;
-                case 'LEFT':  newHead[0] -= 1; break;
-                case 'UP':    newHead[1] -= 1; break;
-                case 'DOWN':  newHead[1] += 1; break;
-            }
-
-            if (newHead[0] < 0 || newHead[0] >= GRID_SIZE || newHead[1] < 0 || newHead[1] >= GRID_SIZE) {
-                triggerGameOver();
-                drawCanvas();
-                return;
-            }
-
-            const isEating = (newHead[0] === food[0] && newHead[1] === food[1]);
-            let newSnake = [newHead, ...snake];
-            if (!isEating) newSnake.pop();
-
-            const headStr = `${newHead[0]},${newHead[1]}`;
-            const bodyWithoutHead = newSnake.slice(1).map(seg => `${seg[0]},${seg[1]}`);
-            if (bodyWithoutHead.includes(headStr)) {
-                triggerGameOver();
-                drawCanvas();
-                return;
-            }
-
-            snake = newSnake;
-
-            if (isEating) {
-                score++;
-                updateScoreDisplay();
-                const newFood = generateRandomFood();
-                if (newFood) food = newFood;
-                else {
-                    triggerGameOver();
-                    drawCanvas();
-                    return;
-                }
-            }
-            drawCanvas();
-        }
-
-        // ---------- ضبط أبعاد Canvas ديناميكيًا ----------
-        function resizeCanvas() {
-            const containerRect = gameContainer.getBoundingClientRect();
-            const scoreBar = document.querySelector('.score-bar');
-            const scoreBarHeight = scoreBar.offsetHeight;
-            
-            // المساحة المتاحة للـ Canvas
-            const availableWidth = containerRect.width;
-            const availableHeight = containerRect.height - scoreBarHeight;
-
-            // حساب حجم الخلية (مربع) بحيث يملأ المساحة بالكامل
-            const sizeByWidth = availableWidth / GRID_SIZE;
-            const sizeByHeight = availableHeight / GRID_SIZE;
-            cellSize = Math.floor(Math.min(sizeByWidth, sizeByHeight));
-            
-            canvasWidth = GRID_SIZE * cellSize;
-            canvasHeight = GRID_SIZE * cellSize;
-            
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-            canvas.style.width = canvasWidth + 'px';
-            canvas.style.height = canvasHeight + 'px';
-            
-            drawCanvas();
-        }
-
-        // ---------- الرسم ----------
-        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
-            if (w < 2 * r) r = w / 2;
-            if (h < 2 * r) r = h / 2;
-            this.moveTo(x + r, y);
-            this.lineTo(x + w - r, y);
-            this.quadraticCurveTo(x + w, y, x + w, y + r);
-            this.lineTo(x + w, y + h - r);
-            this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-            this.lineTo(x + r, y + h);
-            this.quadraticCurveTo(x, y + h, x, y + h - r);
-            this.lineTo(x, y + r);
-            this.quadraticCurveTo(x, y, x + r, y);
-            return this;
-        };
-
-        function drawCanvas() {
-            if (!canvas || !ctx) return;
-            
-            const w = canvas.width;
-            const h = canvas.height;
-            
-            ctx.fillStyle = '#1a3a4f';
-            ctx.fillRect(0, 0, w, h);
-            
-            // شبكة
-            ctx.strokeStyle = '#2e5f75';
-            ctx.lineWidth = 1;
-            for (let i = 0; i <= GRID_SIZE; i++) {
-                ctx.beginPath();
-                ctx.moveTo(i * cellSize, 0);
-                ctx.lineTo(i * cellSize, h);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(0, i * cellSize);
-                ctx.lineTo(w, i * cellSize);
-                ctx.stroke();
-            }
-
-            // تفاحة
-            if (food) {
-                const [fx, fy] = food;
-                const x = fx * cellSize;
-                const y = fy * cellSize;
-                ctx.shadowColor = '#f00';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = '#e63434';
-                ctx.beginPath();
-                ctx.arc(x + cellSize/2, y + cellSize/2, cellSize*0.4, 0, 2*Math.PI);
-                ctx.fill();
-                ctx.fillStyle = '#7ec850';
-                ctx.beginPath();
-                ctx.ellipse(x + cellSize*0.65, y + cellSize*0.3, cellSize*0.15, cellSize*0.2, 0.4, 0, 2*Math.PI);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#5e2e1c';
-                ctx.beginPath();
-                ctx.arc(x + cellSize*0.35, y + cellSize*0.5, cellSize*0.06, 0, 2*Math.PI);
-                ctx.fill();
-            }
-
-            // الدودة
-            if (snake.length) {
-                for (let i = 0; i < snake.length; i++) {
-                    const [sx, sy] = snake[i];
-                    const x = sx * cellSize;
-                    const y = sy * cellSize;
-                    const isHead = (i === 0);
-                    const gradient = ctx.createRadialGradient(
-                        x + cellSize*0.3, y + cellSize*0.3, 2,
-                        x + cellSize/2, y + cellSize/2, cellSize*0.7
-                    );
-                    if (isHead) {
-                        gradient.addColorStop(0, '#6db36d');
-                        gradient.addColorStop(1, '#1f6d1f');
-                    } else {
-                        gradient.addColorStop(0, '#8fce8f');
-                        gradient.addColorStop(1, '#2d862d');
-                    }
-                    ctx.fillStyle = gradient;
-                    ctx.beginPath();
-                    ctx.roundRect(x+2, y+2, cellSize-4, cellSize-4, cellSize*0.15);
-                    ctx.fill();
-                    
-                    if (isHead) {
-                        ctx.fillStyle = 'white';
-                        ctx.beginPath();
-                        ctx.arc(x + cellSize*0.65, y + cellSize*0.35, cellSize*0.12, 0, 2*Math.PI);
-                        ctx.arc(x + cellSize*0.35, y + cellSize*0.35, cellSize*0.12, 0, 2*Math.PI);
-                        ctx.fill();
-                        ctx.fillStyle = '#0b1522';
-                        ctx.beginPath();
-                        ctx.arc(x + cellSize*0.7, y + cellSize*0.32, cellSize*0.07, 0, 2*Math.PI);
-                        ctx.arc(x + cellSize*0.4, y + cellSize*0.32, cellSize*0.07, 0, 2*Math.PI);
-                        ctx.fill();
-                    }
-                }
-            }
-        }
-
-        // ---------- التحكم ----------
-        function handleKeydown(e) {
-            if (!gameActive) return;
-            if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(e.key)) {
-                e.preventDefault();
-            }
-            let newDir = null;
-            if (e.key === 'ArrowRight') newDir = 'RIGHT';
-            else if (e.key === 'ArrowLeft') newDir = 'LEFT';
-            else if (e.key === 'ArrowUp') newDir = 'UP';
-            else if (e.key === 'ArrowDown') newDir = 'DOWN';
-            if (newDir && oppositeDir[newDir] !== direction) {
-                nextDirection = newDir;
-            }
-        }
-
-        let touchStartX = 0, touchStartY = 0;
-        function handleTouchStart(e) {
-            if (!gameActive) return;
-            e.preventDefault();
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-        }
-
-        function handleTouchMove(e) {
-            if (!gameActive) return;
-            e.preventDefault();
-            if (!touchStartX) return;
-            const touch = e.touches[0];
-            const dx = touch.clientX - touchStartX;
-            const dy = touch.clientY - touchStartY;
-            if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
-            
-            let newDir = null;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                newDir = dx > 0 ? 'RIGHT' : 'LEFT';
-            } else {
-                newDir = dy > 0 ? 'DOWN' : 'UP';
-            }
-            if (newDir && oppositeDir[newDir] !== direction) {
-                nextDirection = newDir;
-            }
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-        }
-
-        function handleTouchEnd(e) {
-            e.preventDefault();
-            touchStartX = 0;
-        }
-
-        // ---------- مراقبة تغير حجم الحاوية ----------
-        const resizeObserver = new ResizeObserver(() => {
-            resizeCanvas();
+        document.querySelectorAll('#collectionGrid .creature-card').forEach(card => {
+          card.addEventListener('click', () => {
+            player.activeCreatureId = parseFloat(card.dataset.id);
+            updateUI();
+          });
         });
-        resizeObserver.observe(gameContainer);
+      }
 
-        // دعم visualViewport للهواتف
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', resizeCanvas);
-            window.visualViewport.addEventListener('scroll', resizeCanvas);
+      function updateSellList() {
+        let sel = document.getElementById('sellSelect');
+        sel.innerHTML = player.collection.map((c, i) =>
+          `<option value="${i}">${c.name} ${c.tierName} (${c.value}💰)</option>`).join('');
+      }
+
+      function addLog(msg, isCelebration = false) {
+        let log = document.getElementById('logPanel');
+        let prefix = isCelebration ? '🎉🎊 ' : '';
+        log.innerHTML += `<br>${prefix}${msg}`;
+        log.scrollTop = log.scrollHeight;
+        if (log.children.length > 15) log.innerHTML = log.innerHTML.split('<br>').slice(-10).join('<br>');
+      }
+
+      // ==================== أنظمة اللعبة ====================
+      // استكشاف
+      document.getElementById('searchBtn').addEventListener('click', () => {
+        let rid = Math.floor(10000 + Math.random() * 90000).toString().padStart(5, '0');
+        player.targetPlanet = { id: rid, health: 1e9 + player.planetShield, maxHealth: 1e9 +
+            player.planetShield };
+        document.getElementById('targetInfo').innerText = `🪐 الكوكب ${rid} (A${rid})`;
+        addLog(`🔭 تم اكتشاف كوكب جديد: A${rid}`);
+        updateUI();
+      });
+
+      // هجوم
+      document.getElementById('attackBtn').addEventListener('click', () => {
+        if (!player.targetPlanet || player.targetPlanet.health <= 0) {
+          addLog('⚠️ لا يوجد هدف صالح للهجوم.');
+          return;
+        }
+        let a = getActive();
+        let dmg = a.dmg + (a.level * 5);
+        player.targetPlanet.health -= dmg;
+        let coinsEarned = Math.floor(dmg / 3);
+        player.coins += coinsEarned;
+        player.rating += Math.floor(dmg / 5);
+
+        if (player.targetPlanet.health <= 0) {
+          player.coins += 1_000_000;
+          player.rating += 10000;
+          addLog('🏆 دمار شامل للكوكب! +1,000,000 كوينز و +10,000 نقطة!', true);
+          player.targetPlanet = null;
+          document.getElementById('targetInfo').innerText = 'لا يوجد';
+        } else {
+          addLog(`💥 ضرر: ${dmg} | 🪙 +${coinsEarned} | 🌟 +${Math.floor(dmg/5)} نقطة`);
+        }
+        updateUI();
+      });
+
+      // تطور الوحوش
+      document.getElementById('evolveBtn').addEventListener('click', () => {
+        let a = getActive();
+        if (a.evoStage >= a.maxEvo) {
+          addLog('⚠️ الوحش وصل لأقصى تطور.');
+          return;
+        }
+        let cost = (a.evoStage + 1) * a.value * 2;
+        if (player.coins < cost) {
+          addLog(`❌ تحتاج ${cost.toLocaleString()} كوينز للتطوير.`);
+          return;
+        }
+        player.coins -= cost;
+        a.evoStage++;
+        a.level++;
+        a.dmg = Math.floor(a.baseDmg * (1 + a.evoStage * 0.5));
+        a.def = Math.floor(a.baseDef * (1 + a.evoStage * 0.4));
+        a.hp = Math.floor(a.baseHp * (1 + a.evoStage * 0.6));
+        a.speed = Math.floor(a.baseSpeed * (1 + a.evoStage * 0.3));
+        a.value = Math.floor(a.value * 1.8);
+        addLog(`🔮 تطور ${a.name} إلى المرحلة ${a.evoStage}! القوة تضاعفت!`, true);
+        updateUI();
+      });
+
+      // فتح الباكجات
+      function openPack(type) {
+        let cost = 0,
+          pool = [],
+          mult = 1;
+        switch (type) {
+          case 'normal':
+            cost = 100;
+            pool = ['COMMON', 'UNCOMMON'];
+            break;
+          case 'premium':
+            cost = 500;
+            pool = ['COMMON', 'UNCOMMON', 'RARE'];
+            mult = 1.2;
+            break;
+          case 'super':
+            cost = 1000;
+            pool = ['COMMON', 'UNCOMMON', 'RARE', 'INFERNO'];
+            mult = 1.5;
+            break;
+          case 'legendary':
+            cost = 100000;
+            pool = ['COMMON', 'UNCOMMON', 'RARE', 'INFERNO', 'COSMIC', 'FORBIDDEN'];
+            mult = 2.0;
+            break;
+        }
+        if (player.coins < cost) { addLog('❌ كوينز غير كافية.'); return; }
+        player.coins -= cost;
+
+        let roll = Math.random(),
+          cum = 0,
+          selected = 'COMMON';
+        for (let t of pool) {
+          let p = (t === 'FORBIDDEN') ? 0.001 : Math.min(TIERS[t].prob * mult, 0.85);
+          cum += p;
+          if (roll <= cum) { selected = t;
+            break; }
         }
 
-        // أحداث إضافية
-        window.addEventListener('resize', resizeCanvas);
-        window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 30));
-
-        // ---------- ربط الأحداث ----------
-        function bindEvents() {
-            document.addEventListener('keydown', handleKeydown);
-            
-            canvas.addEventListener('touchstart', handleTouchStart, {passive: false});
-            canvas.addEventListener('touchmove', handleTouchMove, {passive: false});
-            canvas.addEventListener('touchend', handleTouchEnd);
-            canvas.addEventListener('touchcancel', handleTouchEnd);
-            
-            document.addEventListener('touchmove', (e) => {
-                if (e.target === canvas || gameoverOverlay.contains(e.target)) {
-                    e.preventDefault();
-                }
-            }, {passive: false});
-            
-            restartBtn.addEventListener('click', resetGame);
-            overlayRestartBtn.addEventListener('click', resetGame);
+        let baseData;
+        if (selected === 'FORBIDDEN') {
+          baseData = FORBIDDEN_CREATURES[Math.floor(Math.random() * FORBIDDEN_CREATURES.length)];
+        } else {
+          baseData = BASE_CREATURES[Math.floor(Math.random() * BASE_CREATURES.length)];
         }
+        let creature = createCreature(selected, baseData);
+        player.collection.push(creature);
 
-        function init() {
-            bindEvents();
-            resizeCanvas();  // تأكيد الأبعاد الأولية
-            resetGame();
+        let celeb = (selected === 'INFERNO' || selected === 'COSMIC' || selected === 'FORBIDDEN');
+        addLog(`🎁 حصلت على ${creature.name} (${creature.tierName})!`, celeb);
+        if (selected === 'FORBIDDEN' && creature.name === 'Eternal Guardian') {
+          addLog('👑✨ الحارس الأبدي ظهر! أسطورة الكون بين يديك! ✨👑', true);
         }
+        updateUI();
+      }
 
-        init();
+      document.getElementById('buyNormal').addEventListener('click', () => openPack('normal'));
+      document.getElementById('buyPremium').addEventListener('click', () => openPack('premium'));
+      document.getElementById('buySuper').addEventListener('click', () => openPack('super'));
+      document.getElementById('buyLegendary').addEventListener('click', () => openPack('legendary'));
+
+      // بيع
+      document.getElementById('sellBtn').addEventListener('click', () => {
+        let idx = parseInt(document.getElementById('sellSelect').value);
+        if (player.collection.length <= 1) { addLog('لا يمكن بيع آخر وحش.'); return; }
+        let sold = player.collection.splice(idx, 1)[0];
+        player.coins += sold.value;
+        if (player.activeCreatureId === sold.id) player.activeCreatureId = player.collection[0].id;
+        addLog(`💰 تم بيع ${sold.name} مقابل ${sold.value} كوينز.`);
+        updateUI();
+      });
+
+      // ترقية الكوكب
+      document.getElementById('upgradeShield').addEventListener('click', () => {
+        if (player.coins < 5000) { addLog('❌ تحتاج 5000 كوينز.'); return; }
+        player.coins -= 5000;
+        player.planetShield += 100000;
+        addLog('🛡️ تمت ترقية درع الكوكب +100,000.');
+        updateUI();
+      });
+
+      // مزاد
+      let auctionItems = [];
+
+      function generateAuction() {
+        auctionItems = [];
+        for (let i = 0; i < 4; i++) {
+          let tk = Object.keys(TIERS)[Math.floor(Math.random() * Object.keys(TIERS).length)];
+          let base = BASE_CREATURES[Math.floor(Math.random() * BASE_CREATURES.length)];
+          let c = createCreature(tk, base);
+          c.auctionPrice = Math.floor(c.value * (0.7 + Math.random() * 0.8));
+          c.bidder = '🤖 تاجر بوت';
+          auctionItems.push(c);
+        }
+        renderAuction();
+      }
+
+      function renderAuction() {
+        document.getElementById('auctionList').innerHTML = auctionItems.map((c, i) => `
+          <div class="auction-item">
+            <span>${c.emoji} ${c.name} (${c.tierName})</span>
+            <span>💰 ${c.auctionPrice.toLocaleString()}</span>
+            <span>${c.bidder}</span>
+            <button class="btn" data-aidx="${i}">مزايدة +100</button>
+          </div>
+        `).join('');
+        document.querySelectorAll('[data-aidx]').forEach(b => {
+          b.addEventListener('click', (e) => {
+            let idx = parseInt(e.target.dataset.aidx);
+            let item = auctionItems[idx];
+            if (player.coins < item.auctionPrice + 100) { addLog('❌ كوينز غير كافية.'); return; }
+            player.coins -= (item.auctionPrice + 100);
+            player.collection.push(item);
+            auctionItems.splice(idx, 1);
+            addLog(`🔨 ربحت مزاد ${item.name}!`);
+            renderAuction();
+            updateUI();
+          });
+        });
+      }
+      document.getElementById('refreshAuction').addEventListener('click', () => { generateAuction();
+        addLog('🔄 تم تحديث المزادات.'); });
+
+      // مهام
+      let missions = [
+        { desc: 'اجمع 1000 كوينز', check: () => player.coins >= 1000, reward: () => { player.rating += 200;
+            player.coins += 200; }, done: false },
+        { desc: 'امتلك 5 وحوش', check: () => player.collection.length >= 5, reward: () => { player.rating +=
+            500; }, done: false },
+        { desc: 'دمر كوكباً كاملاً', check: () => player.targetPlanet === null && player.rating > 100,
+          reward: () => { player.rating += 1000; }, done: false },
+        { desc: 'طور وحشاً للمرحلة 2', check: () => player.collection.some(c => c.evoStage >= 2),
+          reward: () => { player.coins += 3000; }, done: false },
+        { desc: 'وصل إلى رتبة قائد', check: () => player.rating >= 5000, reward: () => { player.coins +=
+            5000; }, done: false }
+      ];
+
+      function renderMissions() {
+        document.getElementById('missionsList').innerHTML = missions.map((m, i) => {
+          let complete = m.check();
+          if (complete && !m.done) { m.reward();
+            m.done = true;
+            addLog(`✅ أكملت مهمة: ${m.desc}`); }
+          return `<div>${m.done?'✅':'⬜'} ${m.desc} ${m.done?'(مكتملة)':''}</div>`;
+        }).join('');
+      }
+
+      // التصنيف
+      function renderLeaderboard() {
+        let bots = [
+          { name: 'Commander_Star', rating: Math.floor(Math.random() * 2000000) },
+          { name: 'Galaxy_Wolf', rating: Math.floor(Math.random() * 1800000) },
+          { name: 'Nebula_King', rating: Math.floor(Math.random() * 1600000) },
+          { name: 'Cosmic_Hunter', rating: Math.floor(Math.random() * 1400000) },
+          { name: player.id, rating: player.rating, isPlayer: true }
+        ];
+        bots.sort((a, b) => b.rating - a.rating);
+        document.getElementById('leaderboardList').innerHTML = bots.map((b, i) => `
+          <div style="color:${b.isPlayer?'#ffd966':'#ccc'}">${i+1}. ${b.name} - ${b.rating.toLocaleString()} نقطة ${b.isPlayer?'👈':''}</div>
+        `).join('');
+      }
+
+      // تبويبات
+      document.querySelectorAll('.nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          let panelId = tab.dataset.panel;
+          ['home', 'collection', 'shop', 'auction', 'missions', 'leaderboard'].forEach(p => {
+            document.getElementById(p + 'Panel').style.display = 'none';
+          });
+          document.getElementById(panelId + 'Panel').style.display = 'block';
+        });
+      });
+
+      // محاكاة الموسم
+      setInterval(() => {
+        if (player.seasonDaysLeft > 0) {
+          player.seasonDaysLeft--;
+          if (player.seasonDaysLeft <= 0) {
+            player.lastChampion = 'Bot_Emperor_' + Math.floor(Math.random() * 100);
+            player.seasonDaysLeft = 30;
+            addLog('🏁 انتهى الموسم! تم تتويج بطل جديد وبدأ موسم جديد.', true);
+          }
+          updateUI();
+        }
+      }, 60000); // كل دقيقة = يوم في اللعبة
+
+      // تهيئة
+      generateAuction();
+      updateUI();
+      addLog('👑 مرحباً في ETERNAL GUARDIAN - الكون بانتظارك!');
     })();
-</script>
+  </script>
 </body>
 </html>
